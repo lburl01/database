@@ -1,22 +1,3 @@
-# alter table
-# insert INTO
-# SELECT
-#   Count
-#   Order by
-#   WHERE
-#   Sum/avg
-# update
-#   Where id = {integer} - filter
-# delete
-#   where id = {integer} - filter
-# ---------------
-
-# Build a program that when run will ask if you'd like to search for data or create data.
-
-# It is up to you to make your search as flexible as you would like. Make an option for whatever you think best fits your data.
-# And for inserting new data - make it a convenient experience. Prompt for every column value and validate the user input.
-
-# ---------------
 
 require_relative 'database'
 require 'pg'
@@ -122,6 +103,13 @@ def update_has_visited(choice, conn, input)
   end
 end
 
+def delete_row(conn, input)
+  conn.exec(
+  "DELETE FROM travel_destinations " \
+  "WHERE location = '#{input}'"
+  )
+end
+
 def main
 
   conn = PG.connect(dbname: 'travel_destinations')
@@ -134,7 +122,8 @@ def main
     puts "Search the travel destination database (1) "
     puts "Add to the travel destination database (2) "
     puts "Update the \"has visited\" info for a record in the travel destination database (3) "
-    puts "Exit the program (4) "
+    puts "Delete a destination from the database (4)"
+    puts "Exit the program (5) "
     choice = get_input.to_i
 
     if choice == 1
@@ -177,6 +166,7 @@ def main
       else
         visited = "FALSE"
       end
+
       add_destination(conn, location_name, distance, landmark, visited)
       new_destination_details = print_confirmation(conn, location_name, distance, landmark, visited)
       p "Success! You've added the location #{new_destination_details[1]} that is #{new_destination_details[2]} miles from RDU."
@@ -184,6 +174,7 @@ def main
     elsif choice == 3
       puts "Which location would you like to edit?"
       input = get_input.capitalize
+
       row_info = find_row_by_location(conn, input)
       puts "Here's the info for that entry: "
       puts "Location: #{row_info[1]}"
@@ -194,6 +185,7 @@ def main
       puts "Convert that field to true by pressing (1)"
       puts "Convert that field to false by pressing (2)"
       choice = one_or_two?
+
       updated_row = update_has_visited(choice, conn, input)
       puts "Here's your updated destination info: "
       puts "Location: #{updated_row[1]}"
@@ -202,6 +194,13 @@ def main
       puts "Has visited (t) for true, (f) for false: #{updated_row[4]}"
 
     elsif choice == 4
+      puts "What location and its data would you like to delete?"
+      puts "Keep in mind, this CANNOT be undone!"
+      input = get_input.capitalize
+      delete_row(conn, input)
+      puts "Success!"
+
+    elsif choice == 5
       puts "See you next time!"
       exit
     end
